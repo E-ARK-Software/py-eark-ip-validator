@@ -33,7 +33,7 @@ from typing import Optional
 from eark_validator.ipxml.schema import IP_SCHEMA
 from eark_validator.ipxml.namespaces import Namespaces
 from eark_validator.model.checksum import Checksum, ChecksumAlg
-from eark_validator.model.metadata import FileEntry, InvalidFileEntry, MetsFile, MetsRoot
+from eark_validator.model.metadata import FileEntry, MetsFile, MetsRoot
 from eark_validator.model.validation_report import Result
 from eark_validator.model.mimetype import media_types
 from eark_validator.infopacks.checksummer import Checksummer
@@ -68,7 +68,6 @@ class MetsFiles():
             raise ValueError(NOT_FILE.format(mets_file))
         ns: dict[str, str] = {}
         entries: list[FileEntry] = []
-        invalid_entries: list[InvalidFileEntry] = []
         othertype = contentinformationtype = oaispackagetype = mets_root = ''
         try:
             parsed_mets = etree.iterparse(mets_file, events=[START_ELE, START_NS])
@@ -97,15 +96,11 @@ class MetsFiles():
                         errors: List[str] = _validate_file_entry(file_entry, element, os.path.dirname(mets_file))
 
                         if len(errors) == 0:
-                            entries.append(file_entry)
+                            file_entry.isValid = True
                         else:
-                            invalid_entries.append(InvalidFileEntry.model_validate({
-                                'path': file_entry.path,
-                                'size': file_entry.size,
-                                'checksum': file_entry.checksum,
-                                'mimetype': file_entry.mimetype,
-                                'errors': errors
-                                }))
+                            file_entry.errors = errors
+                            
+                        entries.append(file_entry)
         except etree.XMLSyntaxError as ex:
             raise ValueError(NOT_VALID_FILE.format(mets_file, 'XML')) from ex
         return MetsFile.model_validate({
@@ -113,8 +108,7 @@ class MetsFiles():
             'oaispackagetype': oaispackagetype,
             'othertype': othertype,
             'contentinformationtype': contentinformationtype,
-            'file_entries': entries,
-            'invalid_file_entries': invalid_entries
+            'file_entries': entries
             })
 
 class MetsValidator():
