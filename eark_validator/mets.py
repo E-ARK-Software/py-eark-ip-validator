@@ -99,7 +99,7 @@ class MetsFiles():
                             file_entry.isValid = True
                         else:
                             file_entry.errors = errors
-                            
+
                         entries.append(file_entry)
         except etree.XMLSyntaxError as ex:
             raise ValueError(NOT_VALID_FILE.format(mets_file, 'XML')) from ex
