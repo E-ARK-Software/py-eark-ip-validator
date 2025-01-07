@@ -104,12 +104,11 @@ class TestResults():
     def from_element(rule: ET.Element, failed_assert: ET.Element) -> Result:
         """Create a Test result from an element."""
         context = rule.get('context')
-        rule_id = failed_assert.get('id')
-        if isinstance(rule_id, str):
-            rule_id = rule_id.split('_')[0]
+        data = rule.get('id','').split(';')
 
+        rule_id = data[0]
+        severity = Severity.from_role(data[1])
         test = failed_assert.get('test')
-        severity = Severity.from_role(failed_assert.get('role', Severity.ERROR))
         location = failed_assert.get('location')
         message = failed_assert.find(SVRL_NS + 'text').text
         location = context + test + location
@@ -118,12 +117,11 @@ class TestResults():
         })
 
     @staticmethod
-    def from_validation_report(ruleset: ET.Element) -> List[Result]:
+    def from_validation_report(ruleset: ET._ElementTree) -> List[Result]:
         """Get the report from the last validation."""
-        xml_report = ET.XML(bytes(ruleset))
         rule = None
         results: List[Result] = []
-        for ele in xml_report.iter():
+        for ele in ruleset.iter():
             if ele.tag == SVRL_NS + 'fired-rule':
                 rule = ele
             elif ele.tag in [ SVRL_NS + 'failed-assert', SVRL_NS + 'successful-report' ]:
