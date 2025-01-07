@@ -25,6 +25,7 @@ dependencies = [
     "lxml==5.1.0",
     "importlib_resources==5.12.0",
     "pydantic>=2.5.3,<3.0.0",
+    "pyschematron"
 ]
 
 [project.optional-dependencies]
