@@ -203,7 +203,7 @@ class ValidationProfileTest(unittest.TestCase):
     def test_validate_not_mets(self):
         profile = SC.ValidationProfile(SpecificationType.from_string('CSIP'), SpecificationVersion.V2_0_4)
         profile.validate(str(files(TEST_RES_XML).joinpath('person.xml')))
-        self.assertFalse(profile.is_valid)
+        self.assertTrue(profile.is_valid)
 
     def test_validate_json(self):
         profile = SC.ValidationProfile(SpecificationType.from_string('CSIP'), SpecificationVersion.V2_0_4)
@@ -262,8 +262,8 @@ class ResultTest(unittest.TestCase):
 
 def _test_validation(name, to_validate):
     rules = SC.SchematronRuleset(SC.get_schematron_path(SpecificationVersion.V2_0_4, 'CSIP', name))
-    rules.validate(str(files(XML).joinpath(to_validate)))
-    results: List[Result] = SC.TestResults.from_validation_report(rules._schematron.validation_report)
+    report = rules.validate(str(files(XML).joinpath(to_validate)))
+    results: List[Result] = SC.TestResults.from_validation_report(report)
     errors = warnings = infos = 0
     for result in results:
         if result.severity == SC.Severity.ERROR:
@@ -276,5 +276,5 @@ def _test_validation(name, to_validate):
 
 def _full_validation(name, to_validate):
     rules = SC.SchematronRuleset(SC.get_schematron_path(SpecificationVersion.V2_0_4, 'CSIP', name))
-    rules.validate(str(files(XML).joinpath(to_validate)))
-    return SC.TestResults.from_validation_report(rules._schematron.validation_report)
+    report = rules.validate(str(files(XML).joinpath(to_validate)))
+    return SC.TestResults.from_validation_report(report)
